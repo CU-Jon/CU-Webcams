@@ -130,10 +130,6 @@ Test on multiple browsers and devices to ensure compatibility.
 ### Deployment
 Upload files to any web server or use GitHub Pages for free hosting.
 
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
 ## 🎓 About Clemson University
 
 Clemson University is a public research university in Clemson, South Carolina. Founded in 1889, Clemson is known for its beautiful campus, strong academic programs, and vibrant campus life.
