@@ -178,6 +178,15 @@ h3 {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 20;
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Fullscreen control hiding */
+.control-panel.fullscreen-hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+    pointer-events: none;
 }
 
 .control-btn {

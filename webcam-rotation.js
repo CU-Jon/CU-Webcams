@@ -14,7 +14,8 @@ class ClemsonWebcamRotation {
             listRefreshInterval: 3600000, // 1 hour (3600000ms) - adjustable
             randomizeOrder: true, // Set to false to maintain original order from webcams.js
             autoRefreshOnError: true, // Auto-refresh page when camera data fails to load
-            autoRefreshDelay: 10000 // 10 seconds delay before auto-refresh
+            autoRefreshDelay: 5000, // 5 seconds delay before auto-refresh
+            controlsHideDelay: 3000 // 3 seconds delay before hiding controls in fullscreen
         };
 
         // Camera data extracted from Clemson's webcams.js
@@ -27,6 +28,13 @@ class ClemsonWebcamRotation {
         this.listRefreshInterval = null;
         this.retryCount = 0;
 
+        // Fullscreen control hiding variables
+        this.isFullscreen = false;
+        this.controlsVisible = true;
+        this.hideControlsTimeout = null;
+        this.lastMouseMoveTime = 0;
+        this.isHoveringControls = false;
+
         // DOM elements
         this.elements = {
             cameraFeed: document.getElementById('camera-feed'),
@@ -34,13 +42,15 @@ class ClemsonWebcamRotation {
             cameraOwner: document.getElementById('camera-owner'),
             progressBar: document.getElementById('progress-bar'),
             playPauseBtn: document.getElementById('play-pause-btn'),
+            previousBtn: document.getElementById('previous-btn'),
             nextBtn: document.getElementById('next-btn'),
             fullscreenBtn: document.getElementById('fullscreen-btn'),
             currentCamera: document.getElementById('current-camera'),
             totalCameras: document.getElementById('total-cameras'),
             loadingScreen: document.getElementById('loading-screen'),
             errorMessage: document.getElementById('error-message'),
-            retryBtn: document.getElementById('retry-btn')
+            retryBtn: document.getElementById('retry-btn'),
+            controlPanel: document.querySelector('.control-panel')
         };
     }
 
@@ -327,6 +337,7 @@ class ClemsonWebcamRotation {
     setupEventListeners() {
         // Control buttons
         this.elements.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+        this.elements.previousBtn.addEventListener('click', () => this.previousCamera());
         this.elements.nextBtn.addEventListener('click', () => this.nextCamera());
         this.elements.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
         this.elements.retryBtn.addEventListener('click', () => this.retryCurrentCamera());
@@ -339,8 +350,22 @@ class ClemsonWebcamRotation {
         this.elements.cameraFeed.addEventListener('load', () => this.handleImageLoad());
 
         // Fullscreen change events
-        document.addEventListener('fullscreenchange', () => this.updateFullscreenButton());
-        document.addEventListener('webkitfullscreenchange', () => this.updateFullscreenButton());
+        document.addEventListener('fullscreenchange', () => this.handleFullscreenChange());
+        document.addEventListener('webkitfullscreenchange', () => this.handleFullscreenChange());
+
+        // Mouse movement tracking for fullscreen control hiding
+        document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        
+        // Double-click to toggle fullscreen
+        document.addEventListener('dblclick', () => this.toggleFullscreen());
+        
+        // Control panel hover events to prevent hiding when hovering
+        this.elements.controlPanel.addEventListener('mouseenter', () => this.handleControlPanelHover(true));
+        this.elements.controlPanel.addEventListener('mouseleave', () => this.handleControlPanelHover(false));
+        
+        // Touch events for mobile devices
+        document.addEventListener('touchstart', () => this.showControlsInFullscreen());
+        document.addEventListener('touchmove', () => this.showControlsInFullscreen());
     }
 
     /**
@@ -570,6 +595,26 @@ class ClemsonWebcamRotation {
     }
 
     /**
+     * Update fullscreen button appearance and handle control hiding
+     */
+    handleFullscreenChange() {
+        this.updateFullscreenButton();
+        
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        this.isFullscreen = !!isFullscreen;
+        
+        if (this.isFullscreen) {
+            // Hide controls after a short delay in fullscreen
+            this.showControlsInFullscreen();
+            this.startHideControlsTimer();
+        } else {
+            // Show controls when exiting fullscreen
+            this.showControlsInFullscreen();
+            this.stopHideControlsTimer();
+        }
+    }
+
+    /**
      * Update fullscreen button appearance
      */
     updateFullscreenButton() {
@@ -585,6 +630,83 @@ class ClemsonWebcamRotation {
             icon.innerHTML = '<i class="fas fa-expand"></i>';
             text.textContent = 'Fullscreen';
             this.elements.fullscreenBtn.setAttribute('aria-label', 'Enter fullscreen');
+        }
+    }
+
+    /**
+     * Handle mouse movement to show controls in fullscreen
+     */
+    handleMouseMove(event) {
+        if (!this.isFullscreen) return;
+        
+        this.lastMouseMoveTime = Date.now();
+        this.showControlsInFullscreen();
+        this.startHideControlsTimer();
+    }
+
+    /**
+     * Handle control panel hover state
+     */
+    handleControlPanelHover(isHovering) {
+        this.isHoveringControls = isHovering;
+        
+        if (isHovering) {
+            // Stop the hide timer when hovering over controls
+            this.stopHideControlsTimer();
+            this.showControlsInFullscreen();
+        } else {
+            // Start the hide timer when leaving controls (only if in fullscreen)
+            if (this.isFullscreen) {
+                this.startHideControlsTimer();
+            }
+        }
+    }
+
+    /**
+     * Show controls in fullscreen mode
+     */
+    showControlsInFullscreen() {
+        if (!this.controlsVisible) {
+            this.controlsVisible = true;
+            this.elements.controlPanel.classList.remove('fullscreen-hidden');
+        }
+    }
+
+    /**
+     * Hide controls in fullscreen mode
+     */
+    hideControlsInFullscreen() {
+        // Don't hide if user is hovering over the controls
+        if (this.isHoveringControls) {
+            return;
+        }
+        
+        if (this.isFullscreen && this.controlsVisible) {
+            this.controlsVisible = false;
+            this.elements.controlPanel.classList.add('fullscreen-hidden');
+        }
+    }
+
+    /**
+     * Start the timer to hide controls after configured delay
+     */
+    startHideControlsTimer() {
+        this.stopHideControlsTimer();
+        
+        if (this.isFullscreen) {
+            this.hideControlsTimeout = setTimeout(() => {
+                this.hideControlsInFullscreen();
+            }, this.config.controlsHideDelay);
+        }
+    }
+
+    /**
+     * Stop the hide controls timer
+     */
+    stopHideControlsTimer() {
+        if (this.hideControlsTimeout) {
+            clearTimeout(this.hideControlsTimeout);
+            this.hideControlsTimeout = null;
         }
     }
 
