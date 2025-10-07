@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clemson University Webcam Rotation - Fullscreen Display</title>
+    <meta name="description" content="Fullscreen rotation display of Clemson University webcam feeds">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://use.typekit.net/hgw7fke.css">
+</head>
+<body>
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <div id="fullscreen-container">
+        <!-- Camera Display Area -->
+        <main id="main-content" class="camera-display">
+            <img id="camera-feed" 
+                 src="" 
+                 alt="Clemson University Camera Feed" 
+                 class="camera-image">
+            
+            <!-- Camera Information Overlay -->
+            <div class="camera-info-overlay">
+                <div class="camera-info">
+                    <h1 id="camera-title" class="camera-title">Loading Camera...</h1>
+                    <p id="camera-owner" class="camera-owner">Clemson University</p>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <button id="play-pause-btn" class="control-btn" aria-label="Pause rotation">
+                    <span class="control-icon"><i class="fas fa-pause"></i></span>
+                    <span class="control-text">Pause</span>
+                </button>
+                <button id="next-btn" class="control-btn" aria-label="Next camera">
+                    <span class="control-icon"><i class="fas fa-forward-step"></i></span>
+                    <span class="control-text">Next</span>
+                </button>
+                <button id="fullscreen-btn" class="control-btn" aria-label="Toggle fullscreen">
+                    <span class="control-icon"><i class="fas fa-expand"></i></span>
+                    <span class="control-text">Fullscreen</span>
+                </button>
+                <div class="camera-counter">
+                    <span id="current-camera">1</span> / <span id="total-cameras">24</span>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="clemson-logo">
+                <div class="clemson-paw"><i class="fas fa-paw"></i></div>
+                <h2>Clemson University</h2>
+                <p>Loading Webcam Feeds...</p>
+            </div>
+            <div class="loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="error-message" class="error-message hidden">
+            <div class="error-content">
+                <h2>Unable to Load Camera Feed</h2>
+                <p>There was an issue loading the camera feed. Attempting to load next camera...</p>
+                <button id="retry-btn" class="retry-btn">Retry Current Camera</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="help-text">
+        Press 'F' for fullscreen, Space to pause/resume, or Arrow keys to navigate
+    </div>
+    
+    <script src="webcam-rotation.js"></script>
+</body>
+</html>

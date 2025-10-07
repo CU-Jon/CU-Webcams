@@ -1,0 +1,499 @@
+/* Clemson University Webcam Rotation - CSS Styles */
+
+/* CSS Custom Properties for Clemson Brand Colors */
+:root {
+    --clemson-orange: #F56600;
+    --clemson-purple: #522D80;
+    --clemson-dark-purple: #2E1A47;
+    --clemson-white: #FFFFFF;
+    --clemson-gray-100: #F8F9FA;
+    --clemson-gray-500: #6C757D;
+    --clemson-gray-900: #212529;
+    
+    /* Typography - Clemson Brand Font */
+    --font-family: 'Trade Gothic Next', Verdana, 'Franklin Gothic', Arial, sans-serif;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.5;
+    background-color: var(--clemson-dark-purple);
+    color: var(--clemson-white);
+    overflow: hidden;
+}
+
+/* Typography - Clemson Brand Standards */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+}
+
+h1 {
+    font-size: 3.359rem; /* 53.75px */
+    line-height: 4rem; /* 64px */
+}
+
+h2 {
+    font-size: 2.799rem; /* 44.79px */
+    line-height: 3rem; /* 48px */
+}
+
+h3 {
+    font-size: 2.333rem; /* 37.32px */
+    line-height: 2.5rem; /* 40px */
+}
+
+.control-btn, .control-text {
+    font-family: var(--font-family);
+    font-weight: 600;
+}
+
+/* Skip Link for Accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--clemson-orange);
+    color: var(--clemson-white);
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 1000;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Main Container */
+#fullscreen-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: var(--clemson-dark-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Camera Display */
+.camera-display {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--clemson-dark-purple);
+}
+
+.camera-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.camera-image.loading {
+    opacity: 0.7;
+}
+
+/* Camera Information Overlay */
+.camera-info-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, 
+        rgba(46, 26, 71, 0.9) 0%, 
+        rgba(46, 26, 71, 0.7) 50%, 
+        transparent 100%);
+    padding: 2rem;
+    z-index: 10;
+}
+
+.camera-info {
+    max-width: 800px;
+}
+
+.camera-title {
+    font-family: var(--font-family);
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--clemson-white);
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.camera-owner {
+    font-family: var(--font-family);
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: var(--clemson-orange);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+    width: 300px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--clemson-orange);
+    width: 0%;
+    transition: width 0.1s linear;
+    border-radius: 2px;
+}
+
+/* Control Panel */
+.control-panel {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(46, 26, 71, 0.9);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 20;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--clemson-orange);
+    color: var(--clemson-white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: #e55a00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 102, 0, 0.3);
+}
+
+.control-btn:hover .control-icon {
+    color: var(--clemson-white);
+    transform: scale(1.1);
+}
+
+.control-btn:focus {
+    outline: 2px solid var(--clemson-white);
+    outline-offset: 2px;
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.control-icon {
+    font-size: 1.2rem;
+    color: var(--clemson-white);
+    transition: color 0.3s ease;
+}
+
+.control-icon i {
+    font-size: inherit;
+    color: inherit;
+}
+
+.camera-counter {
+    color: var(--clemson-white);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0 1rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--clemson-dark-purple);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s ease-out;
+}
+
+.clemson-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.clemson-paw {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+    color: var(--clemson-orange);
+}
+
+.clemson-paw i {
+    font-size: inherit;
+}
+
+.clemson-logo h2 {
+    font-family: var(--font-family);
+    font-size: 2.5rem;
+    color: var(--clemson-orange);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.clemson-logo p {
+    color: var(--clemson-white);
+    font-size: 1.2rem;
+    font-family: var(--font-family);
+}
+
+.loading-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background: var(--clemson-orange);
+    border-radius: 50%;
+    animation: loading-bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+/* Error Message */
+.error-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(220, 53, 69, 0.95);
+    color: var(--clemson-white);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    z-index: 200;
+    backdrop-filter: blur(10px);
+    font-family: var(--font-family);
+}
+
+.error-content h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-family: var(--font-family);
+    font-weight: 600;
+}
+
+.error-content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    font-family: var(--font-family);
+}
+
+.retry-btn {
+    background: var(--clemson-white);
+    color: #dc3545;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-family);
+}
+
+.retry-btn:hover {
+    background: var(--clemson-gray-100);
+}
+
+/* Help Text */
+.help-text {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    background: rgba(46, 26, 71, 0.7);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    backdrop-filter: blur(5px);
+    font-family: var(--font-family);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes loading-bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .camera-info-overlay {
+        padding: 1rem;
+    }
+    
+    .camera-title {
+        font-size: clamp(1.2rem, 5vw, 2rem);
+    }
+    
+    .camera-owner {
+        font-size: clamp(0.9rem, 3vw, 1.2rem);
+    }
+    
+    .control-panel {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        bottom: 1rem;
+    }
+    
+    .control-btn {
+        min-width: 100px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .camera-counter {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 0.5rem 0 0 0;
+    }
+    
+    .progress-bar-container {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .config-panel {
+        width: 90%;
+        max-width: 350px;
+    }
+    
+    .help-text {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        bottom: 0.5rem;
+        left: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-panel {
+        width: calc(100% - 2rem);
+        margin: 0 1rem;
+    }
+    
+    .camera-info-overlay {
+        padding: 0.75rem;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --clemson-orange: #FF7700;
+        --clemson-purple: #663399;
+        --clemson-dark-purple: #000000;
+    }
+    
+    .control-btn {
+        border: 2px solid var(--clemson-white);
+    }
+    
+    .camera-info-overlay {
+        background: rgba(0, 0, 0, 0.9);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .progress-bar {
+        transition: none;
+    }
+}
