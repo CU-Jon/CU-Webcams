@@ -271,10 +271,16 @@ h3 {
     margin-bottom: 1rem;
     animation: pulse 2s infinite;
     color: var(--clemson-orange);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.clemson-paw i {
-    font-size: inherit;
+.clemson-paw img {
+    width: 6rem;
+    height: 6rem;
+    object-fit: contain;
+    /* filter: brightness(0) saturate(100%) invert(58%) sepia(95%) saturate(3213%) hue-rotate(14deg) brightness(102%) contrast(96%); */
 }
 
 .clemson-logo h2 {
