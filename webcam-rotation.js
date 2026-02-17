@@ -27,6 +27,7 @@ class ClemsonWebcamRotation {
         this.progressInterval = null;
         this.listRefreshInterval = null;
         this.retryCount = 0;
+        this.isHandlingError = false; // Flag to prevent multiple error-induced navigations
 
         // Control hiding variables
         this.controlsVisible = true;
@@ -72,11 +73,30 @@ class ClemsonWebcamRotation {
                 existingScript.remove();
             }
             
+            // Remove any existing dummy containers
+            const existingDummyContainer = document.getElementById('clemson-webcam-dummy-container');
+            if (existingDummyContainer) {
+                existingDummyContainer.remove();
+            }
+            
             // Clear any existing global variables
             if (window.cams) delete window.cams;
             if (window.randCams) delete window.randCams;
             
             console.log('Loading camera data via script tag from: https://www.clemson.edu/webcams/webcams.js');
+            
+            // Create dummy container for external script's DOM manipulation
+            const dummyContainer = document.createElement('div');
+            dummyContainer.id = 'clemson-webcam-dummy-container';
+            dummyContainer.style.display = 'none';
+            dummyContainer.setAttribute('aria-hidden', 'true');
+            
+            // webcams.js appends to #cu-main-content (lines 361 & 430)
+            const dummyMainContent = document.createElement('div');
+            dummyMainContent.id = 'cu-main-content';
+            dummyContainer.appendChild(dummyMainContent);
+            
+            document.body.appendChild(dummyContainer);
             
             // Create script element
             const script = document.createElement('script');
@@ -87,6 +107,7 @@ class ClemsonWebcamRotation {
             // Set up timeout for script loading
             const timeout = setTimeout(() => {
                 script.remove();
+                dummyContainer.remove();
                 reject(new Error('Script loading timed out after 10 seconds'));
             }, 10000);
             
@@ -121,9 +142,18 @@ class ClemsonWebcamRotation {
                         console.log('Camera order randomized');
                     }
                     
+                    // Clean up dummy container after successful data extraction
+                    setTimeout(() => {
+                        if (dummyContainer && dummyContainer.parentNode) {
+                            dummyContainer.remove();
+                            console.log('Cleaned up dummy container');
+                        }
+                    }, 100);
+                    
                     resolve(this.cameras);
                     
                 } catch (error) {
+                    dummyContainer.remove();
                     reject(error);
                 }
             };
@@ -132,6 +162,7 @@ class ClemsonWebcamRotation {
             script.onerror = () => {
                 clearTimeout(timeout);
                 script.remove();
+                dummyContainer.remove();
                 reject(new Error('Failed to load webcams.js script'));
             };
             
@@ -346,8 +377,9 @@ class ClemsonWebcamRotation {
         // Start image refresh interval
         this.startImageRefresh();
 
-        // Reset retry count
+        // Reset retry count and error handling flag
         this.retryCount = 0;
+        this.isHandlingError = false;
         this.hideError();
     }
 
@@ -627,6 +659,7 @@ class ClemsonWebcamRotation {
     handleImageLoad() {
         this.elements.cameraFeed.classList.remove('loading');
         this.retryCount = 0;
+        this.isHandlingError = false;
         this.hideError();
     }
 
@@ -634,6 +667,11 @@ class ClemsonWebcamRotation {
      * Handle image loading error
      */
     handleImageError() {
+        // Prevent multiple error handlers from running simultaneously
+        if (this.isHandlingError) {
+            return;
+        }
+        
         this.retryCount++;
         
         if (this.retryCount <= this.config.retryAttempts) {
@@ -642,6 +680,10 @@ class ClemsonWebcamRotation {
                 this.refreshCameraImage();
             }, this.config.retryDelay);
         } else {
+            // Max retries exceeded - set flag and stop intervals
+            this.isHandlingError = true;
+            this.stopImageRefresh(); // Stop trying to load the failed image
+            
             // Show error and move to next camera
             this.showError();
             setTimeout(() => {
@@ -655,6 +697,7 @@ class ClemsonWebcamRotation {
      */
     retryCurrentCamera() {
         this.retryCount = 0;
+        this.isHandlingError = false;
         this.hideError();
         this.refreshCameraImage();
     }
