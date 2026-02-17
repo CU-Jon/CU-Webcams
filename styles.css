@@ -4,6 +4,7 @@
 :root {
     --clemson-orange: #F56600;
     --clemson-purple: #522D80;
+    --clemson-medium-purple: #3D2557;
     --clemson-dark-purple: #2E1A47;
     --clemson-white: #FFFFFF;
     --clemson-gray-100: #F8F9FA;
@@ -26,7 +27,7 @@ html, body {
     font-family: var(--font-family);
     font-size: 16px;
     line-height: 1.5;
-    background-color: var(--clemson-dark-purple);
+    background: linear-gradient(135deg, var(--clemson-medium-purple) 0%, var(--clemson-purple) 50%, var(--clemson-dark-purple) 100%);
     color: var(--clemson-white);
     overflow: hidden;
 }
@@ -82,7 +83,7 @@ h3 {
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: var(--clemson-dark-purple);
+    background: linear-gradient(135deg, var(--clemson-medium-purple) 0%, var(--clemson-purple) 50%, var(--clemson-dark-purple) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,13 +97,13 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--clemson-dark-purple);
+    background: transparent;
 }
 
 .camera-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: opacity 0.5s ease-in-out;
 }
 

@@ -61,164 +61,83 @@ class ClemsonWebcamRotation {
     }
 
     /**
-     * Fetch camera data dynamically from Clemson's webcams.js
+     * Fetch camera data dynamically from Clemson's webcams.js using script tag
+     * This approach bypasses CORS restrictions since script tags are not subject to CORS
      */
     async fetchCameraData() {
-        const urls = [
-            'https://www.clemson.edu/webcams/webcams.js',
-            // Fallback with CORS proxy if direct access fails
-            'https://api.allorigins.win/raw?url=https://www.clemson.edu/webcams/webcams.js'
-        ];
-
-        for (const url of urls) {
-            try {
-                console.log(`Attempting to fetch camera data from: ${url}`);
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const jsContent = await response.text();
-                
-                if (!jsContent || jsContent.length < 100) {
-                    throw new Error('Received empty or invalid response');
-                }
-
-                // Parse the JavaScript content to extract camera data
-                const { cams, randCams } = this.parseWebcamsJs(jsContent);
-
-                if (randCams.length === 0) {
-                    throw new Error('No active cameras found in webcams.js');
-                }
-
-                // Convert to our format using only active cameras from randCams
-                this.cameras = randCams.map(cameraId => ({
-                    id: cameraId,
-                    title: cams[cameraId]?.title || `Camera ${cameraId}`,
-                    owner: cams[cameraId]?.owner || 'Clemson University',
-                    url: cams[cameraId]?.url || 'https://www.clemson.edu'
-                }));
-
-                console.log(`Successfully loaded ${this.cameras.length} cameras`);
-                
-                // Randomize camera order if enabled
-                if (this.config.randomizeOrder) {
-                    this.shuffleCameras();
-                    console.log('Camera order randomized');
-                }
-                
-                return this.cameras;
-
-            } catch (error) {
-                console.warn(`Failed to fetch from ${url}:`, error.message);
-                
-                // If this was the last URL, throw the error
-                if (url === urls[urls.length - 1]) {
-                    throw error;
-                }
-                // Otherwise, try the next URL
-                continue;
+        return new Promise((resolve, reject) => {
+            // Clean up any existing webcam script and global variables
+            const existingScript = document.getElementById('clemson-webcams-script');
+            if (existingScript) {
+                existingScript.remove();
             }
-        }
-
-        // If all URLs failed, throw error
-        throw new Error('Failed to fetch camera data from all sources');
-    }
-
-    /**
-     * Parse the webcams.js JavaScript content to extract camera data
-     */
-    parseWebcamsJs(jsContent) {
-        // Create a sandbox environment to safely execute the JS
-        const cams = {};
-        const randCams = [];
-
-        // Create a safe execution context
-        const context = {
-            cams,
-            randCams,
-            push: function(item) { this.randCams.push(item); }.bind({ randCams })
-        };
-
-        try {
-            // Extract variable assignments using regex patterns
-            this.extractCameraAssignments(jsContent, cams, randCams);
-        } catch (error) {
-            console.warn('Error parsing webcams.js:', error);
-        }
-
-        return { cams, randCams };
-    }
-
-    /**
-     * Extract camera assignments from JavaScript content
-     */
-    extractCameraAssignments(jsContent, cams, randCams) {
-        // Extract randCams.push() calls
-        const randCamMatches = jsContent.match(/randCams\.push\(["']([^"']+)["']\);/g);
-        if (randCamMatches) {
-            randCamMatches.forEach(match => {
-                const cameraId = match.match(/["']([^"']+)["']/)[1];
-                if (!randCams.includes(cameraId)) {
-                    randCams.push(cameraId);
-                }
-            });
-        }
-
-        // Extract all camera object initializations
-        const cameraInitMatches = jsContent.match(/cams\[['"]([^'"]+)['"]\]\s*=\s*\{\s*\};/g);
-        if (cameraInitMatches) {
-            cameraInitMatches.forEach(match => {
-                const cameraId = match.match(/cams\[['"]([^'"]+)['"]\]/)[1];
-                cams[cameraId] = cams[cameraId] || {};
-            });
-        }
-
-        // Extract individual property assignments with more flexible patterns
-        const patterns = [
-            // Pattern: cams["id"]['property'] = "value";
-            /cams\[["']([^"']+)["']\]\[['"]([^"']+)["']\]\s*=\s*["']([^"']*)["'];/g,
-            // Pattern: cams['id']['property'] = "value";
-            /cams\[['"]([^'"]+)['"]]\[['"]([^'"]+)['"]]\s*=\s*['"]([^'"]*)['"];/g
-        ];
-
-        patterns.forEach(pattern => {
-            let match;
-            while ((match = pattern.exec(jsContent)) !== null) {
-                const [, cameraId, property, value] = match;
-                cams[cameraId] = cams[cameraId] || {};
-                cams[cameraId][property] = value;
-            }
-        });
-
-        // Remove any cameras that don't have all required properties or aren't in randCams
-        const requiredProperties = ['title', 'owner'];
-        Object.keys(cams).forEach(cameraId => {
-            const camera = cams[cameraId];
-            const hasRequiredProps = requiredProperties.every(prop => 
-                camera[prop] !== undefined && camera[prop] !== ''
-            );
             
-            if (!hasRequiredProps || !randCams.includes(cameraId)) {
-                // Only remove if not in randCams, otherwise keep with defaults
-                if (!randCams.includes(cameraId)) {
-                    delete cams[cameraId];
-                } else {
-                    // Add defaults for missing properties
-                    camera.title = camera.title || `Camera ${cameraId}`;
-                    camera.owner = camera.owner || 'Clemson University';
-                    camera.url = camera.url || 'https://www.clemson.edu';
+            // Clear any existing global variables
+            if (window.cams) delete window.cams;
+            if (window.randCams) delete window.randCams;
+            
+            console.log('Loading camera data via script tag from: https://www.clemson.edu/webcams/webcams.js');
+            
+            // Create script element
+            const script = document.createElement('script');
+            script.id = 'clemson-webcams-script';
+            script.src = 'https://www.clemson.edu/webcams/webcams.js';
+            script.type = 'text/javascript';
+            
+            // Set up timeout for script loading
+            const timeout = setTimeout(() => {
+                script.remove();
+                reject(new Error('Script loading timed out after 10 seconds'));
+            }, 10000);
+            
+            // Handle successful script load
+            script.onload = () => {
+                clearTimeout(timeout);
+                
+                try {
+                    // Access the global variables created by webcams.js
+                    const cams = window.cams || {};
+                    const randCams = window.randCams || [];
+                    
+                    if (randCams.length === 0) {
+                        throw new Error('No active cameras found in webcams.js');
+                    }
+                    
+                    console.log(`Found ${randCams.length} active cameras from ${Object.keys(cams).length} total cameras`);
+                    
+                    // Convert to our format using only active cameras from randCams
+                    this.cameras = randCams.map(cameraId => ({
+                        id: cameraId,
+                        title: cams[cameraId]?.title || `Camera ${cameraId}`,
+                        owner: cams[cameraId]?.owner || 'Clemson University',
+                        url: cams[cameraId]?.url || 'https://www.clemson.edu'
+                    }));
+                    
+                    console.log(`Successfully loaded ${this.cameras.length} cameras`);
+                    
+                    // Randomize camera order if enabled
+                    if (this.config.randomizeOrder) {
+                        this.shuffleCameras();
+                        console.log('Camera order randomized');
+                    }
+                    
+                    resolve(this.cameras);
+                    
+                } catch (error) {
+                    reject(error);
                 }
-            }
+            };
+            
+            // Handle script loading error
+            script.onerror = () => {
+                clearTimeout(timeout);
+                script.remove();
+                reject(new Error('Failed to load webcams.js script'));
+            };
+            
+            // Append script to document to start loading
+            document.head.appendChild(script);
         });
-
-        console.log('Parsed cameras:', { totalCams: Object.keys(cams).length, activeCams: randCams.length });
     }
 
     /**
